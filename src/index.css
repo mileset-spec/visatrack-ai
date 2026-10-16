@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-teal-primary: #126B68;
+    --color-teal-dark: #0D4E4C;
+    --color-teal-light: #1A8A86;
+    --color-mint: #DFF4ED;
+    --color-mint-light: #F0FAF6;
+    --color-ivory: #F8FAF8;
+    --color-navy: #172B3A;
+    --color-muted: #697A86;
+    --color-ice-blue: #E5F1FA;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #F8FAF8;
+    color: #172B3A;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Custom scrollbar styling for sleek mobile look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(18, 107, 104, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(18, 107, 104, 0.4);
+}
+
+/* Safe padding utilities for Android gesture bar and notch */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0.5rem);
+}

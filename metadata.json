@@ -1,0 +1,10 @@
+{
+  "name": "VisaTrack AI",
+  "description": "AI-powered visa preparation and application tracking assistant for travelers. Organize documents, prepare verified checklists, scan passports, and monitor application milestones.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
