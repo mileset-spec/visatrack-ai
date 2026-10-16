@@ -256,11 +256,17 @@ export const INITIAL_DOCUMENTS: DocumentItem[] = [
 ];
 
 export const INITIAL_USER_PROFILE: UserProfile = {
+  id: 'user_amaka_01',
   fullName: 'Amaka S. Adebayo',
   email: 'amaka.adebayo@example.ng',
   phone: '+234 803 555 0192',
   passportNationality: 'Nigerian',
   countryOfResidence: 'Nigeria',
+  intendedTravelDates: {
+    departure: '2026-11-20',
+    return: '2026-12-05',
+    destination: 'United Kingdom',
+  },
   passportData: {
     surname: 'ADEBAYO',
     givenNames: 'AMAKA SIMISOLA',
@@ -271,6 +277,7 @@ export const INITIAL_USER_PROFILE: UserProfile = {
     issueDate: '2021-06-18',
     sex: 'F',
     isConfirmed: true,
+    scanImageUrl: '/src/assets/images/passport_scan_guide_1792101482569.jpg',
     lastScannedAt: '2026-10-09',
   },
   notificationPreferences: {
@@ -282,4 +289,6 @@ export const INITIAL_USER_PROFILE: UserProfile = {
     localDataOnly: true,
     biometricLock: false,
   },
+  isSignedIn: true,
+  lastLoginAt: '2026-10-16T08:00:00Z',
 };

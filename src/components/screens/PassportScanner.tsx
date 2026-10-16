@@ -142,6 +142,7 @@ export const PassportScanner: React.FC<PassportScannerProps> = ({
   const handleConfirm = () => {
     onSavePassport({
       ...formData,
+      scanImageUrl: imagePreview || formData.scanImageUrl,
       isConfirmed: true,
       lastScannedAt: new Date().toISOString(),
     });
@@ -295,38 +296,43 @@ export const PassportScanner: React.FC<PassportScannerProps> = ({
       {/* STEP 2: REVIEW EXTRACTED DETAILS & CONFIRM */}
       {activeStep === 'review' && !isScanning && (
         <div className="space-y-4">
-          {/* Preview thumbnail with controls */}
+          {/* Prominent display of the actual captured physical bio page image */}
           {imagePreview && (
-            <div className="bg-white rounded-2xl p-3 border border-[#126B68]/15 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-16 h-12 bg-black rounded-lg overflow-hidden shrink-0">
-                  <img
-                    src={imagePreview}
-                    alt="Captured Scan"
-                    className="w-full h-full object-cover transition-transform"
-                    style={{ transform: `rotate(${rotationAngle}deg)` }}
-                  />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-[#172B3A]">Document Captured</span>
-                  <p className="text-[10px] text-[#697A86]">Ready for confirmation</p>
+            <div className="bg-white rounded-3xl p-4 border border-[#126B68]/20 shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#126B68] uppercase tracking-wider flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Captured Passport Bio Data Page
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleRotate}
+                    className="p-1.5 rounded-lg text-[#697A86] hover:text-[#172B3A] hover:bg-slate-100 flex items-center gap-1 text-[11px]"
+                    title="Rotate image"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Rotate</span>
+                  </button>
+                  <button
+                    onClick={handleRetake}
+                    className="px-2 py-1 text-xs font-bold text-[#126B68] hover:underline"
+                  >
+                    Retake
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={handleRotate}
-                  className="p-2 rounded-lg text-[#697A86] hover:text-[#172B3A] hover:bg-slate-100"
-                  title="Rotate image"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={handleRetake}
-                  className="px-2.5 py-1 text-xs font-bold text-[#126B68] hover:underline"
-                >
-                  Retake
-                </button>
+              {/* High-Fidelity Display of the Scanned Physical Bio Data Page */}
+              <div className="relative rounded-2xl overflow-hidden border-2 border-[#126B68]/30 bg-black aspect-16/10 flex items-center justify-center">
+                <img
+                  src={imagePreview}
+                  alt="Captured Passport Bio Page"
+                  className="w-full h-full object-cover transition-transform duration-300"
+                  style={{ transform: `rotate(${rotationAngle}deg)` }}
+                />
+                <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-md backdrop-blur-xs font-mono">
+                  Physical Data Page
+                </div>
               </div>
             </div>
           )}

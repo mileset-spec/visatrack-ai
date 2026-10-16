@@ -1,5 +1,6 @@
 import React from 'react';
-import { ArrowLeft, ShieldCheck, HelpCircle } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, HelpCircle, LogOut, User } from 'lucide-react';
+import { UserProfile } from '../types';
 
 interface TopBarProps {
   title: string;
@@ -7,6 +8,8 @@ interface TopBarProps {
   onBack?: () => void;
   onOpenHelp?: () => void;
   subtitle?: string;
+  activeUser?: UserProfile;
+  onSignOut?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -15,6 +18,8 @@ export const TopBar: React.FC<TopBarProps> = ({
   onBack,
   onOpenHelp,
   subtitle,
+  activeUser,
+  onSignOut,
 }) => {
   return (
     <header className="sticky top-0 z-30 w-full bg-[#F8FAF8]/90 backdrop-blur-md px-4 py-3 border-b border-[#126B68]/10 flex items-center justify-between gap-3">
@@ -37,19 +42,32 @@ export const TopBar: React.FC<TopBarProps> = ({
           <h1 className="text-base font-bold text-[#172B3A] truncate tracking-tight">
             {title}
           </h1>
-          {subtitle && (
+          {subtitle ? (
             <p className="text-[11px] text-[#697A86] truncate">
               {subtitle}
             </p>
-          )}
+          ) : activeUser ? (
+            <p className="text-[10px] text-[#697A86] truncate flex items-center gap-1">
+              <span>Traveler: <strong className="text-[#172B3A]">{activeUser.fullName.split(' ')[0]}</strong></span>
+              {activeUser.intendedTravelDates?.destination && (
+                <span>· {activeUser.intendedTravelDates.destination}</span>
+              )}
+            </p>
+          ) : null}
         </div>
       </div>
 
       <div className="flex items-center gap-1.5 shrink-0">
-        <div className="flex items-center gap-1 text-[11px] font-medium text-[#126B68] bg-[#DFF4ED] px-2.5 py-1 rounded-full">
-          <ShieldCheck className="w-3.5 h-3.5" />
-          <span className="hidden xs:inline">Secure</span>
-        </div>
+        {activeUser && onSignOut && !showBack && (
+          <button
+            onClick={onSignOut}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[#697A86] hover:text-red-600 hover:bg-red-50 transition-colors"
+            title="Sign Out / Switch Traveler"
+            aria-label="Sign Out"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
+        )}
 
         {onOpenHelp && (
           <button

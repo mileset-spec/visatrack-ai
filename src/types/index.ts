@@ -137,11 +137,17 @@ export interface ChatMessage {
 }
 
 export interface UserProfile {
+  id: string;
   fullName: string;
   email: string;
   phone: string;
   passportNationality: string;
   countryOfResidence: string;
+  intendedTravelDates?: {
+    departure: string;
+    return: string;
+    destination: string;
+  };
   passportData: PassportData;
   notificationPreferences: {
     deadlineAlerts: boolean;
@@ -152,6 +158,8 @@ export interface UserProfile {
     localDataOnly: boolean;
     biometricLock: boolean;
   };
+  isSignedIn: boolean;
+  lastLoginAt?: string;
 }
 
 export type ActiveTab = 'home' | 'applications' | 'documents' | 'assistant' | 'profile';

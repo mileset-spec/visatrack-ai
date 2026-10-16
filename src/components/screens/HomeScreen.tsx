@@ -252,6 +252,76 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         )}
       </section>
 
+      {/* Captured Passport Bio Data Page Widget */}
+      <section aria-label="Captured Passport Bio Page">
+        <div className="flex items-center justify-between mb-2 px-1">
+          <h3 className="text-xs font-bold text-[#697A86] uppercase tracking-wider">
+            Biometric Passport Bio Data
+          </h3>
+          <button
+            onClick={onStartPassportScan}
+            className="text-xs font-bold text-[#126B68] hover:underline"
+          >
+            {userProfile.passportData.scanImageUrl ? 'Update Scan' : 'Scan Page'}
+          </button>
+        </div>
+
+        <div className="bg-white rounded-3xl p-4 border border-[#126B68]/15 shadow-sm space-y-3">
+          {userProfile.passportData.scanImageUrl ? (
+            <div className="space-y-2.5">
+              <div className="relative rounded-2xl overflow-hidden border border-[#126B68]/20 bg-black aspect-16/9 flex items-center justify-center">
+                <img
+                  src={userProfile.passportData.scanImageUrl}
+                  alt="Passport Bio Data Page"
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-between p-3 text-white">
+                  <div>
+                    <span className="text-[10px] text-[#DFF4ED] font-mono block">
+                      {userProfile.passportNationality} Passport · No: {userProfile.passportData.passportNumber}
+                    </span>
+                    <span className="text-xs font-bold font-mono">
+                      {userProfile.passportData.surname}, {userProfile.passportData.givenNames}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold text-[#DFF4ED] bg-[#126B68]/80 backdrop-blur-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Verified Bio Page
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-[#697A86] pt-1">
+                <span>Expiry: <strong className="text-[#172B3A] font-mono">{userProfile.passportData.expiryDate}</strong></span>
+                <button
+                  onClick={() => onNavigateTab('profile')}
+                  className="text-xs font-bold text-[#126B68] hover:underline flex items-center gap-1"
+                >
+                  <span>View Full Bio Page</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={onStartPassportScan}
+              className="p-4 rounded-2xl border-2 border-dashed border-[#126B68]/20 bg-[#DFF4ED]/20 text-center cursor-pointer hover:border-[#126B68] transition-colors space-y-1.5"
+            >
+              <div className="w-9 h-9 rounded-xl bg-[#126B68] text-white flex items-center justify-center mx-auto">
+                <ScanLine className="w-4 h-4" />
+              </div>
+              <p className="text-xs font-bold text-[#172B3A]">
+                No Passport Data Page Captured
+              </p>
+              <p className="text-[11px] text-[#697A86]">
+                Tap to scan or upload your bio-data page image to display on your dossier.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Nigerian Traveler Advisory & Tips */}
       <section className="bg-[#E5F1FA]/60 rounded-2xl p-4 border border-[#126B68]/10 space-y-2">
         <div className="flex items-center gap-2 text-xs font-bold text-[#126B68]">

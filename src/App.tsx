@@ -25,6 +25,7 @@ import { DocumentsScreen } from './components/screens/DocumentsScreen';
 import { PassportScanner } from './components/screens/PassportScanner';
 import { AIAssistantScreen } from './components/screens/AIAssistantScreen';
 import { ProfileScreen } from './components/screens/ProfileScreen';
+import { AuthScreen } from './components/auth/AuthScreen';
 import { DocumentViewerModal } from './components/modals/DocumentViewerModal';
 import { UploadDocModal } from './components/modals/UploadDocModal';
 import { HelpCircle, X, ShieldCheck, CheckCircle2 } from 'lucide-react';
@@ -41,8 +42,12 @@ export default function App() {
   const [applications, setApplications] = useState<VisaApplication[]>([]);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile>(storage.getUserProfile());
+  const [savedProfiles, setSavedProfiles] = useState<UserProfile[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [viewMode, setViewMode] = useState<'mobile_frame' | 'responsive'>('mobile_frame');
+
+  // Sign In / Out overlay state
+  const [isAuthScreenOpen, setIsAuthScreenOpen] = useState<boolean>(false);
 
   // Modals
   const [previewDoc, setPreviewDoc] = useState<DocumentItem | null>(null);
@@ -57,9 +62,15 @@ export default function App() {
   useEffect(() => {
     setApplications(storage.getApplications());
     setDocuments(storage.getDocuments());
-    setUserProfile(storage.getUserProfile());
+    const profile = storage.getUserProfile();
+    setUserProfile(profile);
+    setSavedProfiles(storage.getAllProfiles());
     setChatMessages(storage.getChatMessages());
     setViewMode(storage.getViewMode());
+    // If not signed in, show auth screen
+    if (!profile.isSignedIn) {
+      setIsAuthScreenOpen(true);
+    }
   }, []);
 
   // Update applications
@@ -88,12 +99,51 @@ export default function App() {
     }
   };
 
+  // Sign in new traveler or existing traveler
+  const handleSignIn = (profile: UserProfile, newApplication?: VisaApplication) => {
+    storage.signInUser(profile);
+    setUserProfile(profile);
+    setSavedProfiles(storage.getAllProfiles());
+
+    if (newApplication) {
+      storage.saveApplication(newApplication);
+      setApplications(storage.getApplications());
+      setSelectedAppId(newApplication.id);
+    }
+
+    setIsAuthScreenOpen(false);
+    setActiveTab('home');
+    setActiveSubView('none');
+  };
+
+  // Select existing profile from list
+  const handleSelectExistingProfile = (profileId: string) => {
+    const matched = savedProfiles.find((p) => p.id === profileId);
+    if (matched) {
+      storage.signInUser(matched);
+      setUserProfile({ ...matched, isSignedIn: true });
+      setIsAuthScreenOpen(false);
+      setActiveTab('home');
+      setActiveSubView('none');
+    }
+  };
+
+  // Sign out user
+  const handleSignOut = () => {
+    storage.signOutUser();
+    const updated = { ...userProfile, isSignedIn: false };
+    setUserProfile(updated);
+    setIsAuthScreenOpen(true);
+    setActiveSubView('none');
+  };
+
   // Reset all data to sample
   const handleResetData = () => {
     storage.resetAllData();
     setApplications(storage.getApplications());
     setDocuments(storage.getDocuments());
     setUserProfile(storage.getUserProfile());
+    setSavedProfiles(storage.getAllProfiles());
     setChatMessages(storage.getChatMessages());
     setSelectedAppId(null);
     setActiveSubView('none');
@@ -144,7 +194,32 @@ export default function App() {
   // Save confirmed passport scan
   const handleSavePassport = (passport: PassportData) => {
     storage.updatePassportData(passport);
-    setUserProfile(storage.getUserProfile());
+    const updated = storage.getUserProfile();
+    setUserProfile(updated);
+    setSavedProfiles(storage.getAllProfiles());
+
+    // If passport document exists in checklist of active application, update it
+    if (applications.length > 0) {
+      const updatedApps = applications.map((app) => {
+        const updatedChecklist = app.checklist.map((item) => {
+          if (item.category === 'Identity' && item.title.toLowerCase().includes('passport')) {
+            return {
+              ...item,
+              isCompleted: true,
+              documentName: `Passport_${passport.surname}_${passport.passportNumber}.jpg`,
+              documentUrl: passport.scanImageUrl,
+              uploadedAt: new Date().toISOString().split('T')[0],
+              notes: `Physical bio page captured. Number: ${passport.passportNumber}, Exp: ${passport.expiryDate}.`,
+              status: 'verified' as const,
+            };
+          }
+          return item;
+        });
+        return { ...app, checklist: updatedChecklist };
+      });
+      storage.saveApplications(updatedApps);
+      setApplications(updatedApps);
+    }
   };
 
   // Chat message send
@@ -170,6 +245,7 @@ export default function App() {
   const selectedApp = applications.find((a) => a.id === selectedAppId);
 
   const getScreenTitle = () => {
+    if (isAuthScreenOpen || !userProfile.isSignedIn) return 'Traveler Check-in';
     if (activeSubView === 'wizard') return 'Create Visa Application';
     if (activeSubView === 'application_detail') {
       return selectedApp ? `${selectedApp.destination} Application` : 'Application Checklist';
@@ -202,13 +278,22 @@ export default function App() {
           setActiveSubView('none');
           setSelectedAppId(null);
         }}
+        activeUser={userProfile.isSignedIn ? userProfile : undefined}
+        onSignOut={handleSignOut}
         onOpenHelp={() => setShowHelpModal(true)}
       />
 
       {/* Main Screen Router */}
       <div className="flex-1 flex flex-col relative overflow-y-auto">
-        {/* SUBVIEWS */}
-        {activeSubView === 'wizard' ? (
+        {/* If Auth Screen is active or user signed out */}
+        {isAuthScreenOpen || !userProfile.isSignedIn ? (
+          <AuthScreen
+            currentProfile={userProfile}
+            savedProfiles={savedProfiles}
+            onSignIn={handleSignIn}
+            onSelectExistingProfile={handleSelectExistingProfile}
+          />
+        ) : activeSubView === 'wizard' ? (
           <ApplicationWizard
             onComplete={handleCompleteWizard}
             onCancel={() => setActiveSubView('none')}
@@ -236,6 +321,7 @@ export default function App() {
                   fileType: 'PDF Document',
                   sizeBytes: 1200000,
                   uploadDate: item.uploadedAt || '2026-10-12',
+                  dataUrl: item.documentUrl || userProfile.passportData?.scanImageUrl,
                   notes: item.notes,
                   isSample: true,
                 });
@@ -315,17 +401,20 @@ export default function App() {
                 onUpdateProfile={(p) => {
                   storage.saveUserProfile(p);
                   setUserProfile(p);
+                  setSavedProfiles(storage.getAllProfiles());
                 }}
                 onScanPassport={() => setActiveSubView('passport_scanner')}
                 onResetAllData={handleResetData}
+                onSignOut={handleSignOut}
+                onSwitchUser={() => setIsAuthScreenOpen(true)}
               />
             )}
           </>
         )}
       </div>
 
-      {/* 5-Item Bottom Navigation Bar (Shown on main tab views) */}
-      {activeSubView === 'none' && (
+      {/* 5-Item Bottom Navigation Bar (Shown when user is signed in and on main tab views) */}
+      {userProfile.isSignedIn && !isAuthScreenOpen && activeSubView === 'none' && (
         <BottomNav
           activeTab={activeTab}
           onTabChange={(tab) => setActiveTab(tab)}
@@ -386,8 +475,9 @@ export default function App() {
               <div className="bg-[#DFF4ED]/60 p-3 rounded-2xl border border-[#126B68]/15 space-y-1">
                 <span className="font-bold text-[#126B68] block">Key Capabilities:</span>
                 <ul className="list-disc list-inside space-y-1 text-[11px]">
+                  <li>Sign in with your travel dates & switch traveler profiles</li>
+                  <li>Biometric passport bio-data page capture & visual display</li>
                   <li>Destination checklist generator with stamping requirements</li>
-                  <li>Biometric passport OCR capture & validation</li>
                   <li>Preparation milestone tracker (Created to Decision)</li>
                   <li>AI Assistant powered by Gemini 3.8 Flash</li>
                 </ul>

@@ -86,7 +86,28 @@ export const storage = {
     this.saveDocuments(list);
   },
 
-  // User Profile
+  // User Profiles & Multi-User Sessions
+  getAllProfiles(): UserProfile[] {
+    try {
+      const data = localStorage.getItem('visatrack_all_profiles_v1');
+      if (!data) {
+        localStorage.setItem('visatrack_all_profiles_v1', JSON.stringify([INITIAL_USER_PROFILE]));
+        return [INITIAL_USER_PROFILE];
+      }
+      return JSON.parse(data);
+    } catch {
+      return [INITIAL_USER_PROFILE];
+    }
+  },
+
+  saveAllProfiles(profiles: UserProfile[]): void {
+    try {
+      localStorage.setItem('visatrack_all_profiles_v1', JSON.stringify(profiles));
+    } catch (err) {
+      console.error(err);
+    }
+  },
+
   getUserProfile(): UserProfile {
     try {
       const data = localStorage.getItem(KEYS.USER_PROFILE);
@@ -103,8 +124,34 @@ export const storage = {
   saveUserProfile(profile: UserProfile): void {
     try {
       localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify(profile));
+      // Also update in all profiles
+      const all = this.getAllProfiles();
+      const idx = all.findIndex((p) => p.id === profile.id);
+      if (idx >= 0) {
+        all[idx] = profile;
+      } else {
+        all.unshift(profile);
+      }
+      this.saveAllProfiles(all);
     } catch (err) {
       console.error('Failed to save profile to localStorage:', err);
+    }
+  },
+
+  signInUser(profile: UserProfile): void {
+    const active = { ...profile, isSignedIn: true, lastLoginAt: new Date().toISOString() };
+    this.saveUserProfile(active);
+  },
+
+  signOutUser(): void {
+    const current = this.getUserProfile();
+    current.isSignedIn = false;
+    localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify(current));
+    const all = this.getAllProfiles();
+    const idx = all.findIndex((p) => p.id === current.id);
+    if (idx >= 0) {
+      all[idx].isSignedIn = false;
+      this.saveAllProfiles(all);
     }
   },
 

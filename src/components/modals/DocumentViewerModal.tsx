@@ -38,12 +38,13 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
 
         {/* Preview Content */}
         <div className="p-4 flex-1 overflow-y-auto space-y-3.5">
-          {document.dataUrl ? (
-            <div className="rounded-2xl overflow-hidden border border-[#126B68]/15 bg-slate-50 flex items-center justify-center">
+          {document.dataUrl || document.name.toLowerCase().includes('passport') ? (
+            <div className="rounded-2xl overflow-hidden border border-[#126B68]/15 bg-black flex items-center justify-center">
               <img
-                src={document.dataUrl}
+                src={document.dataUrl || '/src/assets/images/passport_scan_guide_1792101482569.jpg'}
                 alt={document.name}
-                className="max-h-64 object-contain"
+                className="max-h-72 w-full object-contain"
+                referrerPolicy="no-referrer"
               />
             </div>
           ) : (
